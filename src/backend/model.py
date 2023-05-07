@@ -14,6 +14,7 @@ class NLPModel(object):
     class predictors(TransformerMixin):
         def transform(self, X, **transform_params):
             # Cleaning Text
+            
             return [text.strip().lower() for text in X]
 
         def fit(self, X, y=None, **fit_params):
@@ -26,7 +27,7 @@ class NLPModel(object):
         """Simple NLP
         Attributes:
             clf: sklearn classifier model
-            vectorizor: TFIDF vectorizer or similar
+            vectorizor: Count vectorizer or similar
         """
         self.punctuations = string.punctuation
         self.stopwords = STOP_WORDS
@@ -58,9 +59,11 @@ class NLPModel(object):
         return tokens
 
     def create_pipeline(self):
-        pipe = Pipeline([("cleaner", self.predictors()),
-                         ('vectorizer', self.vector),
-                         ('classifier', self.clf)])
+        pipe = Pipeline([
+            # ("cleaner", self.predictors()),
+            ('vectorizer', self.vector),
+            ('classifier', self.clf)]
+            )
         
         return pipe
 

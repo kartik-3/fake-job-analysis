@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 from flask_restful import reqparse, abort, Api, Resource
 import pickle
 import numpy as np
@@ -6,6 +7,9 @@ from model import NLPModel
 import re
 
 app = Flask(__name__)
+# CORS(app)
+cors = CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
+
 api = Api(app)
 # create new model object
 model = NLPModel()
@@ -26,14 +30,23 @@ with open(vec_path, 'rb') as f:
 
 # argument parsing
 parser = reqparse.RequestParser()
-parser.add_argument('query')
+parser.add_argument('job_title')
+parser.add_argument('job_description')
+parser.add_argument('job_requirements')
+parser.add_argument('job_benefits')
+parser.add_argument('company_profile')
 
 
 class PredictJob(Resource):
-    def get(self):
+    def post(self):
         # use parser and find the user's query
         args = parser.parse_args()
-        user_query = args['query']
+        job_title = args['job_title']
+        job_description = args['job_description']
+        job_requirements = args['job_requirements']
+        job_benefits = args['job_benefits']
+        company_profile = args['company_profile']
+        user_query = job_title + " " + company_profile + " " + job_description + " " + job_requirements + " " + job_benefits
         user_query = clean_text(user_query)
 
         # vectorize the user's query and make a prediction
@@ -41,16 +54,20 @@ class PredictJob(Resource):
         prediction = model.predict(uq_vectorized)
         pred_proba = model.predict_proba(uq_vectorized)
         # Output either 'Negative' or 'Positive' along with the score
+        print(prediction)
         if prediction == 0:
             pred_text = 'Negative'
         else:
             pred_text = 'Positive'
+        
+        if len(user_query) < 50:
+            pred_text = "Neutral"
 
         # round the predict proba value and set to new variable
         confidence = round(pred_proba[0], 3)
-
+        print(confidence)
         # create JSON object
-        output = {'prediction': pred_text, 'confidence': confidence}
+        output = jsonify({'prediction': pred_text, 'confidence': confidence})
 
         return output
 
@@ -63,11 +80,10 @@ def clean_text(text):
     text = text.lower()
     return text
 
-
 # Setup the Api resource routing here
 # Route the URL to the resource
-api.add_resource(PredictJob, '/')
+api.add_resource(PredictJob, '/predict')
 
 
 if __name__ == '__main__':
-    app.run(port="5050", debug=True)
+    app.run(port="5000", debug=True)
