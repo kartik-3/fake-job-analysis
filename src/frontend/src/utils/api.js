@@ -1,19 +1,14 @@
-import axios from 'axios';
-import { API_BASE_URL } from './constants';
-
-// const config = {
-// 	headers: {
-// 		"Content-Type": "application/json"
-// 	},
-// 	withCredentials: true
-// }
+import axios from "axios";
+import { API_BASE_URL } from "./constants";
 
 export async function predictJob(req) {
-	console.log(req)
-	const res = await axios.post(`${API_BASE_URL}/predict`, req)
-	return res
+  return await axios.post(`${API_BASE_URL}/predict`, req);
 }
 
-// export async function updateFilters(req) {
-// 	return await axios.post(`${API_BASE_URL}/filter_topics`, req)
-// }
+export async function getJobData() {
+  return await axios.get(`${API_BASE_URL}/predict`);
+}
+
+export async function confidence(min, max) {
+  return Math.round(((Math.random() * (max - min) + min) + Number.EPSILON) * 100) / 100
+}

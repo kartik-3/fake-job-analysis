@@ -60,7 +60,7 @@ class NLPModel(object):
 
     def create_pipeline(self):
         pipe = Pipeline([
-            # ("cleaner", self.predictors()),
+            ("cleaner", self.predictors()),
             ('vectorizer', self.vector),
             ('classifier', self.clf)]
             )
@@ -90,7 +90,7 @@ class NLPModel(object):
     def predict_proba(self, X):
         """Returns probability for the binary class '1' in a numpy array
         """
-        y_proba = self.clf.predict_proba(X)
+        y_proba = self.pipe.predict_proba(X)
         return y_proba[:, 1]
 
     def predict(self, X):
