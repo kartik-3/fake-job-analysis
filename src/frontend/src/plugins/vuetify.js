@@ -1,3 +1,4 @@
+// Plugin for vuetify library
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib/framework';
 

@@ -64,25 +64,10 @@
 
 
 <script>
-// import { getJobData } from "./utils/api";
 import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'App',
-  async created() {
-    const confidence = (min, max) => Math.round(((Math.random() * (max - min) + min) + Number.EPSILON) * 100) / 100
-
-    const rndInt = confidence(0.05, 0.30)
-    console.log(rndInt)
-    // console.log(Math.floor((Math.random() * 1) + 1))
-    // const jobData = await getJobData()
-    // const data = JSON.parse(jobData.data)
-
-    // this.UPDATE_dataByCols(data["data_by_cols"]);
-    // this.UPDATE_dataById(data.data_by_id);
-    // this.UPDATE_notProvidedCounts(data.not_provided_counts);
-    // this.UPDATE_providedCounts(data.provided_counts);
-  },
   computed: {
     ...mapState('jobs', ['dataByCols', 'dataById', 'notProvidedCounts', 'providedCounts']),
   },

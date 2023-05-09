@@ -1,6 +1,7 @@
+# importing all necessary packages
 from flask import Flask, jsonify, request
-from flask_cors import CORS, cross_origin
-from flask_restful import reqparse, abort, Api, Resource
+from flask_cors import CORS
+from flask_restful import reqparse, Api, Resource
 import pickle
 import numpy as np
 from model import NLPModel
@@ -8,8 +9,9 @@ import re
 import pandas as pd
 import json
 
+# creating app
 app = Flask(__name__)
-# CORS(app)
+# cors configuration for frontend communication
 cors = CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
 
 api = Api(app)
@@ -20,6 +22,7 @@ clf_path = './models/LogisticClassifier.pkl'
 with open(clf_path, 'rb') as f:
     model.clf = pickle.load(f)
 
+#load trained pipe
 pipe_path = './models/LogisticClassifier.pkl'
 with open(pipe_path, 'rb') as f:
     model.pipe = pickle.load(f)
@@ -37,7 +40,7 @@ parser.add_argument('job_requirements')
 parser.add_argument('job_benefits')
 parser.add_argument('company_profile')
 
-
+# class to decode numpy types
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -48,10 +51,7 @@ class NpEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
 
-# Your codes ....
-# json.dumps(data, cls=NpEncoder)
-
-
+# class for REST APIs
 class PredictJob(Resource):
     def post(self):
         # use parser and find the user's query
@@ -63,14 +63,14 @@ class PredictJob(Resource):
         company_profile = args['company_profile']
         user_query = job_title + " " + company_profile + " " + \
             job_description + " " + job_requirements + " " + job_benefits
+        #clean text after extracting the arguments
         user_query = clean_text(user_query)
 
         # vectorize the user's query and make a prediction
         uq_vectorized = model.vectorizer_transform(np.array([user_query]))
         prediction = model.predict(uq_vectorized)
         pred_proba = model.predict_proba(uq_vectorized)
-        # Output either 'Negative' or 'Positive' along with the score
-        print(prediction)
+        # Output either 'Negative', 'Positive' or 'Neutral' along with the score
         if prediction == 0:
             pred_text = 'Negative'
         else:
@@ -81,13 +81,14 @@ class PredictJob(Resource):
 
         # round the predict proba value and set to new variable
         confidence = round(pred_proba[0], 3)
-        print(confidence)
         # create JSON object
         output = jsonify({'prediction': pred_text, 'confidence': confidence})
 
         return output
 
+    #send job data to frontend for visualizations
     def get(self):
+        #read pickle file
         data = pd.read_pickle("./data.pkl")
         counts = {}
         data_by_id = {}
@@ -99,27 +100,30 @@ class PredictJob(Resource):
         data_by_cols.pop('salary_max', None)
         data_by_cols.pop('salary_min', None)
 
+        #counts of all cols
         for col in all_cols:
             counts[col] = data[col].value_counts()
 
+        #counts of provided/not_provided
         not_provided_counts, provided_counts, total = {}, {}, 12372
         for col in counts:
             if 'not provided' in counts[col]:
                 not_provided_counts[col] = counts[col]["not provided"]
                 provided_counts[col] = total - counts[col]["not provided"]
-
+        #create data by job_id
         for id in data_by_cols['job_id']:
             new_data = {}
             for col in all_cols:
                 new_data[col] = data_by_cols[col][id]
                 data_by_id[id+1] = new_data
-
+        #return job details
         output = json.dumps({'not_provided_counts': not_provided_counts, 'provided_counts': provided_counts,
                             'data_by_cols': dict(data_by_cols), 'data_by_id': dict(data_by_id)}, cls=NpEncoder)
         return output
 
-
+#cleaning text data
 def clean_text(text):
+    # Removing special characters
     text = re.sub('[^A-Za-z0-9]+', ' ', text)
     # Remove extra white space characters from start and end of string columns
     text = text.strip()
@@ -128,9 +132,9 @@ def clean_text(text):
     return text
 
 
-# Setup the Api resource routing here
 # Route the URL to the resource
 api.add_resource(PredictJob, '/predict')
 
+#main function
 if __name__ == '__main__':
     app.run(port="5000", debug=True)

@@ -1,3 +1,4 @@
+// Storing states, mutations, actions
 const state = {
   dataByCols: {},
   dataById: {},

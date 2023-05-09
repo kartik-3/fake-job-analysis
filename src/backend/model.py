@@ -1,3 +1,4 @@
+#imports
 import pickle
 from spacy.lang.en.stop_words import STOP_WORDS
 from spacy.lang.en import English
@@ -9,12 +10,13 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 import pandas as pd
 
+#Creating our class for our model
 class NLPModel(object):
 
+    # predictors class to transform and fit our model
     class predictors(TransformerMixin):
         def transform(self, X, **transform_params):
             # Cleaning Text
-            
             return [text.strip().lower() for text in X]
 
         def fit(self, X, y=None, **fit_params):
@@ -23,30 +25,36 @@ class NLPModel(object):
         def get_params(self, deep=True):
             return {}
 
+    # constructor to initialize the object parameters
     def __init__(self):
-        """Simple NLP
-        Attributes:
-            clf: sklearn classifier model
-            vectorizor: Count vectorizer or similar
-        """
+        # creating variables for punctutations, stopwords, parser
         self.punctuations = string.punctuation
         self.stopwords = STOP_WORDS
         self.parser = English()
 
+        # reading data from pickle file
         self.data = self.read_pkl("./data_combined.pkl")
         self.X = self.data.text
         self.y = self.data.fraudulent
+        #splitting data into training and test
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.data.text, self.data.fraudulent, test_size=0.3)
 
+        # creating our Logistic Regression classifier
         self.clf = LogisticRegression(class_weight='balanced')
+        # tokenizing
         self.tokenizer = self.tokenizer_fn
+        #creating vector using CountVectorizer
         self.vector = CountVectorizer(tokenizer=self.tokenizer, ngram_range=(1, 2))
+        #creating pipe
         self.pipe = self.create_pipeline()
+        #fitting pur model
         self.vectorizer_fit(self.X_train, self.Y_train)
+        #creating pickle files
         self.pickle_vectorizer()
         self.pickle_clf()
         self.pickle_pipe()
 
+    #function to tokenize our data
     def tokenizer_fn(self, sentence):
         # Creating our token object
         tokens = self.parser(sentence)
@@ -58,70 +66,58 @@ class NLPModel(object):
         # return a preprocessed list of tokens
         return tokens
 
+    #function to create the pipeline
     def create_pipeline(self):
-        pipe = Pipeline([
+        return Pipeline([
             ("cleaner", self.predictors()),
             ('vectorizer', self.vector),
             ('classifier', self.clf)]
             )
-        
-        return pipe
 
+    #Fits a count vectorizer to the text
     def vectorizer_fit(self, X_train, Y_train):
-        """Fits a TFIDF vectorizer to the text
-        """
         self.pipe.fit(X_train, Y_train)
 
+    #read pickle file
     def read_pkl(self, file):
         return pd.read_pickle(file)
-    
+
+    #Transform the text data to a sparse matrix
     def vectorizer_transform(self, X):
-        """Transform the text data to a sparse TFIDF matrix
-        """
         X_transformed = self.vector.transform(X)
         return X_transformed
 
+    #"Trains the classifier to associate the label with the sparse matrix
     def train(self, X, y):
         """Trains the classifier to associate the label with the sparse matrix
         """
         # X_train, X_test, y_train, y_test = train_test_split(X, y)
         self.pipe.fit(X, y)
 
+    #Returns probability for the binary class '1' in a numpy array
     def predict_proba(self, X):
-        """Returns probability for the binary class '1' in a numpy array
-        """
         y_proba = self.pipe.predict_proba(X)
         return y_proba[:, 1]
 
+    #Returns the predicted class in an array
     def predict(self, X):
-        """Returns the predicted class in an array
-        """
         y_pred = self.pipe.predict(X)
         return y_pred
 
+    #Saves the trained vectorizer for future use.
     def pickle_vectorizer(self, path='./models/CountVectorizer.pkl'):
-        """Saves the trained vectorizer for future use.
-        """
         with open(path, 'wb') as f:
             pickle.dump(self.vector, f)
             print("Pickled vectorizer at {}".format(path))
 
+    #Saves the trained classifier for future use.
     def pickle_clf(self, path='./models/LogisticClassifier.pkl'):
-        """Saves the trained classifier for future use.
-        """
         with open(path, 'wb') as f:
             pickle.dump(self.clf, f)
             print("Pickled classifier at {}".format(path))
 
-
+    #Saves the trained pipe for future use.
     def pickle_pipe(self, path='./models/pipe.pkl'):
-        """Saves the trained classifier for future use.
-        """
         with open(path, 'wb') as f:
             pickle.dump(self.pipe, f)
             print("Pickled pipe at {}".format(path))
-
-    # def plot_roc(self, X, y, size_x, size_y):
-    #     """Plot the ROC curve for X_test and y_test.
-    #     """
-    #     plot_roc(self.clf, X, y, size_x, size_y)

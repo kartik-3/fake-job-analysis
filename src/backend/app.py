@@ -1,23 +1,16 @@
+## This file is NOT used. Just for testing purposes
+
+# imports
 from flask import Flask, jsonify, request
-# from flask_cors import CORS
-# import urllib
-import json
-# import config
-import os 
-# import re
 app = Flask(__name__)
-# CORS(app)
 import re
 
-
+# POST route to test APIs
 @app.route('/predict', methods = ['POST'])
 def predict_job():
-    # print(request, request.get_json())
     js=request.get_json()
-    # print(js)
     qtext = str(js['text'])
     text = clean_text(qtext)
-    print(text)
     response = {
         "response": "okay",
         "text": text

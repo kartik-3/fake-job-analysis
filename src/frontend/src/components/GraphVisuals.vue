@@ -1,3 +1,7 @@
+<!--
+  Shows graphs on the Visualizations tab
+  Used ApexCharts library to achieve this
+-->
 <template>
   <v-container>
     <v-row>
@@ -37,9 +41,8 @@
 
 <script>
 
-import { mapState } from 'vuex';
-
 export default {
+  // variables used in creating the charts
   data: () => ({
     experiencesNumbers: [4153, 2872, 1842, 2184, 724, 99, 297, 201],
     experienceChartOptions: {
@@ -108,8 +111,5 @@ export default {
       }
     },
   }),
-  computed: {
-    ...mapState('jobs', ['dataByCols', 'dataById', 'notProvidedCounts', 'providedCounts']),
-  },
 }
 </script>
