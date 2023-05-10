@@ -4,7 +4,7 @@
 <template>
   <v-container>
     <v-alert class="my-16 text-justify text-h4" color="blue" dense text elevation="2">
-      Welcome to <strong>Job Verify!</strong> <br><br>
+      Welcome to <strong>JobVerify!</strong> <br><br>
       This tool assists users in classifying the authenticity of a job posting. It prevents them from being scammed by
       fake
       job poster agencies and saves them from sharing sensitive information to illegitimate parties.<br><br>

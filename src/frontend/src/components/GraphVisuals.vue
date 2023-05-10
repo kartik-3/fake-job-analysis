@@ -30,7 +30,7 @@
     </v-row>
     <v-row>
       <v-col cols="6">
-        <p class="text-h3 my-16"> Top required experiences in the database</p>
+        <p class="text-h3 my-16"> Top required education in the database</p>
       </v-col>
       <v-col cols="6">
         <apex-chart width="100%" type="bar" :options="educationChartOptions" :series="educationNumbers"></apex-chart>
